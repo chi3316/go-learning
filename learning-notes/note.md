@@ -338,7 +338,7 @@ func myfunc2(a string, b string) (int,int) {
 
 //返回多个值，并给返回值命名
 func myfunc3(a string, b string) (r1 int,r2 int) {
-	fmt.Printf("myfunc2 形参列表：%s %T,%s %T ",a,a,b,b)
+	fmt.Printf("myfunc3 形参列表：%s %T,%s %T ",a,a,b,b)
 	//r1 r2 作为两个局部变量，有默认值
 	r1 = 666
 	r2 = 777
@@ -347,11 +347,14 @@ func myfunc3(a string, b string) (r1 int,r2 int) {
 
 //返回多个值，并给返回值命名，并且多个返回值的类型相同
 func myfunc4(a string, b string) (r1 ,r2 int) {
-	fmt.Printf("myfunc2 形参列表：%s %T,%s %T ",a,a,b,b)
+	fmt.Printf("myfunc4 形参列表：%s %T,%s %T ",a,a,b,b)
 	//r1 r2 作为两个局部变量，有默认值，在这里会返回0
 	return 
 }
 ```
+
+- 可以给返回值指定名字，方便进行一些复杂操作后得到返回值
+- 允许给返回值变量赋值后还是返回了其他值
 
 #### init函数
 
