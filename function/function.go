@@ -13,6 +13,9 @@ func main() {
 
 	result5,result6 := myfunc4("p1","p2")
 	fmt.Println("return ",result5,result6)
+
+	ans := myfunc5()
+	fmt.Println("return ",ans)
 }
 
 // 定义函数 func关键字
@@ -29,7 +32,7 @@ func myfunc2(a string, b string) (int,int) {
 
 //返回多个值，并给返回值命名
 func myfunc3(a string, b string) (r1 int,r2 int) {
-	fmt.Printf("myfunc2 形参列表：%s %T,%s %T ",a,a,b,b)
+	fmt.Printf("myfunc3 形参列表：%s %T,%s %T ",a,a,b,b)
 	//r1 r2 作为两个局部变量，有默认值
 	r1 = 666
 	r2 = 777
@@ -38,7 +41,12 @@ func myfunc3(a string, b string) (r1 int,r2 int) {
 
 //返回多个值，并给返回值命名，并且多个返回值的类型相同
 func myfunc4(a string, b string) (r1 ,r2 int) {
-	fmt.Printf("myfunc2 形参列表：%s %T,%s %T ",a,a,b,b)
+	fmt.Printf("myfunc4 形参列表：%s %T,%s %T ",a,a,b,b)
 	//r1 r2 作为两个局部变量，有默认值，在这里会返回0
 	return 
+}
+
+func myfunc5() (ans int) {
+	ans = 1000
+	return 0
 }
