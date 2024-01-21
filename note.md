@@ -582,4 +582,58 @@ func printSlice(array []int) {
 	fmt.Print("length :",len(array))
 }
 ```
+**切片的基本操作**
+- 扩容 append
+  ![slice示意图](image.png)
+  - 利用append()函数在slice末尾追加元素。append会返回一个新的slice
+  ```go
+  func main() {
+	slice := make([]int,3, 3)
+	fmt.Println("slice长度：",len(slice),"slice容量：",cap(slice))
 
+	//在slice末尾追加一个元素
+	slice = append(slice, 1)
+	//fmt.Println(append(slice, 1))
+	fmt.Println("slice长度：",len(slice),"slice容量：",cap(slice))
+
+	//out；
+	// slice长度： 3 slice容量： 3
+	// slice长度： 4 slice容量： 6
+	}
+	```
+	- 当slice的容量满的时候，底层会自动开辟空间，新开辟的大小就是上次的容量，相当于扩容一倍
+- 截取
+  ```go
+  func main() {
+	slice := []int{0, 1, 2, 3, 4}
+	//[lower-bound:upper-bound)   这样新切片的长度 =  upper-bound - lower-bound
+	part1 := slice[1:3]
+	fmt.Println(part1)
+
+	//[0,2)
+	part2 := slice[:3]
+	fmt.Println(part2)
+
+	//[1,len(slice))
+	part3 := slice[1:]
+	fmt.Println(part3)
+
+	//[0,len(slice)) 截取全部
+	part4 := slice[:]
+	fmt.Println(part4)
+	
+	//这样对slice进行截取后，part和原来的slice还是指向同一块内存空间，只是它们维护的头尾指针不同
+	//对slice[0]进行修改 , part[0]也会跟着改变
+	slice[0] = 999
+	fmt.Println(slice)
+	fmt.Println(part2)
+
+	//要实现slice的深拷贝，使用copy(new,old)
+	newSlice := make([]int,len(slice))
+	copy(newSlice,part3)
+	fmt.Println(slice)
+	fmt.Println(newSlice)
+	}
+	```
+	- 对slice进行截取后，part和原来的slice还是指向同一块内存空间，只是它们维护的头尾指针不同
+	- 要实现slice的深拷贝，使用copy(new,old)
