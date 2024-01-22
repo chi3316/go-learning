@@ -640,3 +640,71 @@ func printSlice(array []int) {
 	```
 	- 对slice进行截取后，part和原来的slice还是指向同一块内存空间，只是它们维护的头尾指针不同
 	- 要实现slice的深拷贝，使用copy(new,old)
+
+### map
+
+#### 定义map
+```go
+func main() {
+	//var myMap map[string]string = make(map[string]string, 10)
+	var myMap map[string]string
+	fmt.Print(myMap == nil,"\n")
+
+	//var m = make(map[string]string, 10)
+	//也可以不指定大小   
+	m := make(map[string]string) 
+	m["java"] = "wife"
+	m["go"] = "lover"
+	fmt.Println(m)
+
+	//声明的同时顺便初始化值，就不需要make分配空间了
+	m3 := map[string]string {
+		"wife: " : "java",
+		"lover" : "go",
+		"anotherLover" : "python",
+	}
+
+	fmt.Println(m3)
+}
+```
+#### 使用map,进行基础的增删改查
+```go
+func main() {
+	cityMap := make(map[string]string)
+	fmt.Println(cityMap)
+
+	//添加
+	cityMap["China"] = "Bejing"
+	cityMap["Japan"] = "Tokoy"
+	fmt.Println(cityMap)
+
+	//遍历
+	for key , value := range cityMap {
+		fmt.Println("key",key,":","value",value)
+	}
+
+	//删除 delete关键字  传入key
+	delete(cityMap,"Japan")
+	fmt.Println(cityMap)
+
+	//修改
+	cityMap["China"] = "HuiLai"
+	printMap(cityMap)
+
+	//拷贝map
+	m4 := make(map[string]string)
+	for key, value := range cityMap {
+		m4[key] = value
+	}
+	fmt.Println("\n",m4)
+}
+
+//使用map进行传参，引用传递
+func printMap(cityMap map[string]string) {
+	for key , value := range cityMap {
+		fmt.Print("key = ",key," value = ",value)
+	}
+}
+```
+- 使用map进行传参，是引用传递
+- 拷贝map可以通过遍历逐一赋值到新的map当中
