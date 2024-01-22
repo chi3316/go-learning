@@ -708,3 +708,114 @@ func printMap(cityMap map[string]string) {
 ```
 - 使用map进行传参，是引用传递
 - 拷贝map可以通过遍历逐一赋值到新的map当中
+
+### 面向对象
+#### 类
+- 定义类：通过struct + func相互绑定来
+  - struct的定义：
+	```go
+	//type 关键字  给数据类型取一个别名
+	type myInt int
+
+	//定义结构体
+	type Book struct {
+		title string
+		price myInt 
+		}
+	```
+  	将结构体当作形参进行传递时，有值传递和引用传递两种方式
+	```go
+	//结构体作形参
+	//值传递
+	func changeBook1(book Book) {
+	}
+	//引用传递
+	func changeBook2(book *Book) {
+		book.title = "Golang"
+	}   book.title = "Golang"
+	```
+  - 与func绑定：
+	```go
+		/*
+	func (this Book) Show() {
+		fmt.Println(this)
+	}
+
+	func (this Book) GetTitile() string {
+		return this.title
+	}
+
+	func (this Book) SetTitile(title string) {
+		
+		this.title = title
+	}
+	*/
+
+	//像上面那样写this指向的是调用该方法的对象的一个副本
+	//要加个*,才是指向该对象
+	func (this *Book) Show() {
+		fmt.Println(this)
+	}
+
+	func (this *Book) GetTitile() string {
+	return this.title
+	}
+
+	func (this *Book) SetTitile(title string) {
+	this.title = title
+	}
+
+	func main() {
+		//创建一个对象
+		book := Book{title: "java",price: 100}
+		fmt.Println("title:",book.GetTitile())
+		book.Show()
+	}
+	```
+  - go中的对象封装是基于包进行封装的。而类的访问权限是通过结构体，字段或者方法的首字母是否大小写来决定的。
+	- 大写：对包外部可见，其它包也可以访问
+	- 小写：对包外部不可见，只能在本包访问
+#### 继承
+定义父类和子类的基本语法：
+```go
+//定义一个父类
+type Person struct {
+	name string
+	age int
+}
+
+func (this *Person) Walk() {
+	fmt.Println("Person walk...")
+}
+
+func (this *Person) Talk() {
+	fmt.Println("Person talk...")
+}
+
+//定义子类
+type Student struct {
+	Person
+	id int
+}
+
+//子类可以重写父类方法
+func (this *Student) Walk() {
+	fmt.Println("Student Walk...")
+}
+
+//扩展新的方法
+func (this *Student) Eat() {
+	fmt.Println("Student Eat...")
+}
+```
+声明子类：
+1. `s := Student{Person{name:"cjp",age : 20},1001}`
+2. 也可以这样写:
+ ```go
+	var s Student
+	s.name = "cjp"
+	s.age = 20
+	s.id = 1001
+```
+- go当中的继承没有那么多权限来继承。
+  
