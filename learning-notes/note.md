@@ -939,3 +939,155 @@ func main() {
 }
 ```
 ### 反射
+Go 语言的反射机制是一种在运行时检查变量和数据结构类型的机制。反射的功能允许程序在运行时检查类型信息、获取变量的值、修改变量的值，以及调用变量的方法。Go 的反射包是 reflect。
+
+反射主要涉及到 `reflect` 包中的 `Type` 和 `Value` 类型，分别用于表示类型信息和值信息。以下是一些基本的反射操作：
+
+1. **获取类型信息（Type）：**
+
+    使用 `reflect.TypeOf()` 函数可以获取变量的类型信息。例如：
+
+    ```go
+    package main
+
+    import (
+        "fmt"
+        "reflect"
+    )
+
+    func main() {
+        var num int
+        fmt.Println(reflect.TypeOf(num))  // 输出 int
+    }
+    ```
+
+2. **获取值信息（Value）：**
+
+    使用 `reflect.ValueOf()` 函数可以获取变量的值信息。例如：
+
+    ```go
+    package main
+
+    import (
+        "fmt"
+        "reflect"
+    )
+
+    func main() {
+        var num int = 42
+        value := reflect.ValueOf(num)
+        fmt.Println(value.Int())  // 输出 42
+    }
+    ```
+
+3. **修改变量的值：**
+
+    使用 `reflect.Value` 的 `Elem()` 方法可以获取指向变量的指针，从而修改变量的值。例如：
+
+    ```go
+    package main
+
+    import (
+        "fmt"
+        "reflect"
+    )
+
+    func main() {
+        var num int = 42
+        value := reflect.ValueOf(&num).Elem()
+        value.SetInt(100)
+        fmt.Println(num)  // 输出 100
+    }
+    ```
+
+4. **遍历结构体字段和方法：**
+
+    使用 `reflect.Type` 的 `NumField()` 和 `Field()` 方法可以遍历结构体的字段，而使用 `reflect.Type` 的 `NumMethod()` 和 `Method()` 方法可以遍历类型的方法。例如：
+
+    ```go
+    package main
+
+    import (
+        "fmt"
+        "reflect"
+    )
+
+    type Person struct {
+        Name string
+        Age  int
+    }
+
+    func (p Person) SayHello() {
+        fmt.Println("Hello, I'm", p.Name)
+    }
+
+    func main() {
+        p := Person{"Alice", 25}
+
+        // 遍历结构体字段
+        t := reflect.TypeOf(p)
+        for i := 0; i < t.NumField(); i++ {
+            field := t.Field(i)
+            fmt.Println(field.Name, field.Type)
+        }
+
+        // 遍历结构体方法
+        for i := 0; i < t.NumMethod(); i++ {
+            method := t.Method(i)
+            fmt.Println(method.Name, method.Type)
+        }
+    }
+    ```
+### 结构体标签
+结构体标签（Struct Tags）是结构体字段上的元数据，通常用于在运行时通过反射机制获取字段的信息。结构体标签是写在字段的后方，由反引号（`）括起来的字符串。结构体标签是一种为结构体字段添加元数据的灵活机制，它允许在运行时通过反射机制获取额外的信息。
+【ps: 作用有点像java的注解】
+- **基本使用**
+	```go
+	type resume struct {
+		Name string `info:"name" doc:"你的名字"`
+		Sex  string `info:"sex"`
+	}
+
+	func findTag(str interface{}) {
+		t := reflect.TypeOf(str).Elem()
+
+		for i := 0; i < t.NumField(); i++ {
+			tagInfo := t.Field(i).Tag.Get("info")
+			tagDoc := t.Field(i).Tag.Get("doc")
+			fmt.Println("info: ",tagInfo,"doc: ",tagDoc)
+		}
+	}
+
+	func main() {
+		var r resume
+		findTag(&r)
+	}
+	```
+- **应用案例 ：将struct转为json**
+  ```go
+  import (
+	"encoding/json"
+	"fmt"
+	)
+
+	//给字段添加元数据，以便在运行时进行解释和处理。很像java的注解
+	type Movie struct {
+		Title  string   `json:"title"`
+		Year   int      `json:"year"`
+		Price  int      `json:"rmb"`
+		Actors []string `json:"actors"`
+	}
+
+	func main() {
+		movie := Movie{"果宝特攻", 2002, 20, []string{"甘蔗精", "苹果精", "菠萝精"}}
+
+		//编码，将struct -> json
+		jsonStr , err := json.Marshal(movie)
+		if err != nil {
+			fmt.Println("Json marshal error",err)
+			return
+		}
+
+		fmt.Printf("jsonStr = %s\n",jsonStr)
+	}
+  ```
