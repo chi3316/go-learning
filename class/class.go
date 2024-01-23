@@ -45,4 +45,9 @@ func main() {
 	book := Book{title: "java",price: 100}
 	fmt.Println("title:",book.GetTitile())
 	book.Show()
+
+	book2 := Book{}
+	book2.price = 100
+	book2.title = "C++"
+	book2.Show()
 }

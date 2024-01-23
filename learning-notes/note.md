@@ -667,7 +667,7 @@ func main() {
 	fmt.Println(m3)
 }
 ```
-#### 使用map,进行基础的增删改查
+#### 使用map进行基础的增删改查
 ```go
 func main() {
 	cityMap := make(map[string]string)
@@ -711,7 +711,7 @@ func printMap(cityMap map[string]string) {
 
 ### 面向对象
 #### 类
-- 定义类：通过struct + func相互绑定来
+- 定义类：通过struct + func相互绑定来定义类
   - struct的定义：
 	```go
 	//type 关键字  给数据类型取一个别名
@@ -728,11 +728,12 @@ func printMap(cityMap map[string]string) {
 	//结构体作形参
 	//值传递
 	func changeBook1(book Book) {
+		book.title = "Golang"
 	}
 	//引用传递
 	func changeBook2(book *Book) {
 		book.title = "Golang"
-	}   book.title = "Golang"
+	}   
 	```
   - 与func绑定：
 	```go
@@ -758,11 +759,11 @@ func printMap(cityMap map[string]string) {
 	}
 
 	func (this *Book) GetTitile() string {
-	return this.title
+		return this.title
 	}
 
 	func (this *Book) SetTitile(title string) {
-	this.title = title
+		this.title = title
 	}
 
 	func main() {
@@ -817,5 +818,124 @@ func (this *Student) Eat() {
 	s.age = 20
 	s.id = 1001
 ```
-- go当中的继承没有那么多权限来继承。
-  
+- go当中的继承没有那么多权限
+
+#### 多态 interface
+**go语言通过接口实现多态的特性。**
+- 定义一个接口（本质是一个指针）
+	```go
+	//接口，本质是一个指针
+	type Animal interface{
+		Sleep()
+		GetColor() string
+		GetType() string
+	}
+	```
+
+- 定义类实现该接口（重写接口的所有方法）
+	```go
+	//只要重写了这个接口的所有类，就可以用接口类型的指针指向该类
+	//猫类
+	type Cat struct {
+		color string
+		the_type string
+	}
+	func (this *Cat) Sleep() {
+		fmt.Println("小猫老弟在睡觉...")
+	}
+
+	func (this *Cat) GetColor() string {
+		return this.color
+	}
+
+	func (this *Cat) GetType() string {
+		return this.the_type
+	}
+	```
+- 这样就完成了多态的设计，可以使用接口类型的指针指向实现改接口的类的对象,通过动态绑定机制完成不同的功能
+	```go
+	//使用接口类型作为形参
+	func showAnimal(animal Animal) {
+		fmt.Println(animal.GetColor(),animal.GetType())
+		animal.Sleep()
+	}
+
+	func main() {
+		//var animal Animal //接口类型的指针
+		var cat Animal = &Cat{"黄色","小猫"}
+		showAnimal(cat)
+
+		var dog Animal = &Dog{"快乐","小狗"}
+		showAnimal(dog)
+	}
+	```
+
+**通用万能类型 : 空接口 interface{}**
+- 有点像java里的Object类。可以使用`inteface{}`类型接收任意类型的变量
+	```go
+	package main
+
+	import "fmt"
+
+	func myFunc(arg interface{}) {
+		fmt.Println("myFunc arg:",arg)
+	}
+
+	func main() {
+		myFunc(666)
+		myFunc("cjp")
+	}
+	```
+- go提供了**类型断言机制** 用来判断引用的底层数据类型（arg的具体类型）
+  ```go
+	func myFunc(arg interface{}) {
+		fmt.Println("myFunc arg:",arg)
+		value , ok := arg.(string)
+		if ok {
+			fmt.Println("arg:",value,"的类型是string")
+		}
+	}
+  ```
+
+
+**go语言当中变量组成**
+![Alt text](image-1.png)
+每个变量都由这两部分组成，可以表示为一个pair数据结构:`pair<type,value>`。将变量赋值给另一个变量(可以相互兼容转换吗，比如string -> interface{})的过程中，这个pari是不可变的。
+```go
+type Reader interface {
+	ReadBook()
+}
+
+type Writer interface {
+	WriteBook()
+}
+
+type Book struct {
+}
+
+func (this *Book) ReadBook() {
+	fmt.Println("Read a book")
+}
+
+func (this *Book) WriteBook() {
+	fmt.Println("Write a book")
+}
+
+func main() {
+	//book : pair<type : Book , value : Book{}地址>
+	book := &Book{}
+
+	//r : pair<type:,value:>  未确定
+	var r Reader
+	r = book  //r : pair<type : Book , value : Book{}地址>
+	r.ReadBook()
+
+	//w : pair<type:,value:>  未确定
+	var w Writer
+	w = book //w : pair<type : Book , value : Book{}地址>
+	w.WriteBook()
+
+	w = r.(Writer) //此处的断言能成功，因为 w , r这两个变量的pair中的type是一致的
+}
+```
+### 反射
