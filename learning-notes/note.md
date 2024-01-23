@@ -898,7 +898,7 @@ func (this *Student) Eat() {
   ```
 
 
-**go语言当中变量组成**
+**go语言的变量组成**
 
 ![Alt text](image-1.png)<br>
 每个变量都由这两部分组成，可以表示为一个pair数据结构:`pair<type,value>`。将变量赋值给另一个变量(可以相互兼容转换吗，比如string -> interface{})的过程中，这个pari是不可变的。
