@@ -1092,3 +1092,169 @@ Go 语言的反射机制是一种在运行时检查变量和数据结构类型�
 		fmt.Printf("jsonStr = %s\n",jsonStr)
 	}
   ```
+### goruntine 协程
+#### 进程相关知识
+**多线程/进程操作系统：**
+
+![Alt text](image-2.png)<br>
+问题：
+
+![Alt text](image-3.png)<br>
+进程/线程的数量越多，切换成本就越大，也就越浪费CPU的性能。多线程随着同步竞争，开发设计也变得越来越复杂。
+
+**go语言的调度器**
+在 Go 语言中，goroutine 的调度采用了一种类似轮询调度的方式。Go 运行时（runtime）使用了称为 M:N 调度的模型，其中 M 个 goroutine 可以在 N 个操作系统线程上运行。goroutine 通过 Go 运行时的调度器进行管理，而不是直接依赖于底层的操作系统线程。
+ M:N 调度模型：<br>
+![Alt text](image-4.png)
+go的协程调度器的设计与处理策略：
+将co-routine => goroutine  减少了协程的内存大小，同时可以对goroutine进行灵活调度。
+**GMP模型：**
+
+![Alt text](image-5.png)
+> 在 Go 语言中，GMP 指的是 Goroutine、M（Machine）、P（Processor），这是 Go 运行时系统的关键组件。GMP 模型用于管理和调度 Goroutine，以实现高效的并发执行。
+> 1. **Goroutine (G)**: `Goroutine` 是 Go 语言中的轻量级线程，它由 Go 运行时环境管理。`Goroutine` 是并发执行的基本单位，它相比于传统的线程更轻量，可以高效地创建和管理大量的并发任务。
+> 2. **Machine (M)**: `Machine` 是物理或虚拟的执行线程，它负责执行 `Goroutine`。`M` 的数量可以根据系统的 CPU 核心数量动态调整。每个 `M` 都有一个本地的调度队列，其中包含要执行的 `Goroutine`。
+> 3. **Processor (P)**: `Processor` 是逻辑处理器，负责将 `M` 与 `G` 进行关联。`P` 的数量决定了系统中可以并发执行的 `Goroutine` 的数量。每个 `P` 包含一个调度器，用于选择要运行的 `M`，并从 `M` 的本地队列中选择 `Goroutine`。
+> GMP 模型的关键思想是将 `Goroutine` 与底层的执行线程 `M` 解耦，以充分利用系统资源。当一个 `Goroutine` 阻塞时，`M` 可以继续执行其他 `Goroutine`，而不会阻塞整个线程。这种设计提高了并发执行的效率。
+> 
+>GMP 模型的工作流程如下：
+>1. 初始时，系统会创建一个 `P`（`P` 的数量可以通过 `GOMAXPROCS` 环境变量进行设置）。
+>2. 当 `Goroutine` 启动时，它会被放入 `P` 的本地队列。
+>3. `P` 的调度器选择一个 `M`，并从其本地队列中选择一个 `Goroutine` 运行。
+>4. 如果 `Goroutine` 阻塞，`M` 可以选择执行其他 `Goroutine`，而不阻塞整个线程。
+>5. 当 `Goroutine` 结束时，它可以选择继续运行其他 `Goroutine` 或休眠。
+
+**处理策略：**
+- 复用线程
+  - work stealing机制
+  - hand off机制
+- 利用并行
+  - GOMAXPROCS 限定P的个数 = CPU核数 / 2
+- 抢占
+- 全局G队列
+
+#### 使用goruntine
+- 使用go关键字 + 匿名函数 / 有名函数 启动一个go程
+- 退出当前go程 `runtime.Goexit()`
+- go程间的通信，使用`channel`
+```go
+func main() {
+	//主函数启动了 5 个 goroutine，每个 goroutine 打印一些数字。由于 goroutine 的轮询调度，它们会交替执行，产生交织输出。
+	for i := 0; i < 5; i++ {
+		go printNumbers(i)
+	}
+
+	time.Sleep(time.Second)
+}
+
+func printNumbers(id int) {
+	for i := 1; i <= 3; i++ {
+		fmt.Printf("Goroutine %d: %d\n", id, i)
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+```
+#### channel 管道
+goroutine通过channel通信：
+
+![Alt text](image-6.png)
+
+```go
+func main() {
+	c := make(chan int)
+	//如何得到这个go程执行结束后的返回值val ,无法直接定义变量去接收，而是需要通过channel
+	go func(a int, b int) int {
+		fmt.Println("a = ", a, "b = ", b)
+		val := a + b
+		c <- val
+		return val
+	}(10, 20)
+	num := <- c
+	fmt.Println(c)
+}
+```
+- 无缓冲的channel
+  ![Alt text](image-7.png)
+  - 在第 1 步，两个 goroutine 都到达通道，但哪个都没有开始执⾏发送或者接收。
+  - 在第 2 步，左侧的 goroutine 将它的⼿伸进了通道，这模拟了向通道发送数据的⾏为。这时，这个 goroutine 会在通道中被锁住，直到交换完成。
+  - 在第 3 步，右侧的 goroutine 将它的⼿放⼊通道，这模拟了从通道⾥接收数据。这个 goroutine ⼀样也会在通道中被锁住，直到交换完成。
+  - 在第 4 步和第 5 步，进⾏交换，并最终，在第 6 步，两个 goroutine 都将它们的⼿从通道⾥拿出来，这模拟了被锁住的 goroutine 得到释放。两个 goroutine 现在都可以去做其他事情了。
+- 有缓冲的channel
+  ![Alt text](image-8.png)
+  - 在第 1 步，右侧的 goroutine 正在从通道接收⼀个值。
+  - 在第 2 步，右侧的这个 goroutine独⽴完成了接收值的动作，⽽左侧的 goroutine 正在发送⼀个新值到通道⾥。
+  - 在第 3 步，左侧的goroutine 还在向通道发送新值，⽽右侧的 goroutine 正在从通道接收另外⼀个值。这个步骤⾥的两个操作既不是同步的，也不会互相阻塞。
+  - 最后，在第 4 步，所有的发送和接收都完成，⽽通道⾥还有⼏个值，也有⼀些空间可以存更多的值
+
+  特点:当channel已经满，再向⾥⾯写数据，就会阻塞。
+- 关闭channel
+  ```go
+  func main() {
+	c := make(chan int)
+
+	go func() {
+		for i := 0; i < 5; i++ {
+			c <- i
+		}
+		close(c)
+	}()
+
+	for {
+		//ok 为true表示channel没有关闭
+		if data, ok := <-c; ok {
+			fmt.Println(data)
+		} else {
+			break
+		}
+	}
+	fmt.Println("Main Finished...")
+  }
+  ```
+  注意事项：
+  - channel不像⽂件⼀样需要经常去关闭，只有当你确实没有任何发送数据了，或者你想显式的结束range循环之类的，才去关闭channel
+  - 关闭channel后，⽆法向channel 再发送数据(引发 panic 错误后导致接收⽴即返回零值)
+  - 关闭channel后，可以继续从channel接收数据
+  - 对于nil channel，⽆论收发都会被阻塞
+- channel与range配合使用
+  ```go
+  func main() {
+	c := make(chan int)
+
+	go func() {
+		for i := 0; i < 5; i++ {
+			c <- i
+		}
+		close(c)
+	}()
+	
+	//迭代channel
+	for data := range c {
+		fmt.Println(data)
+	}
+
+	fmt.Println("Main Finished...")
+  }
+  ```
+- channel与select配合使用
+	单流程下⼀个go只能监控⼀个channel的状态，select可以完成监控多个channel的状态。
+	
+	```go
+	func Fibonacci(c , quit chan int) {
+		x , y := 1 , 1
+		for {
+			select {
+			case c <- x :
+				//如果c可写，则会执行该case
+				x = y
+				y = x + y
+			case <- quit :
+				//如果quit可读，则会执行该case
+				fmt.Println("quit")
+				return 
+			}
+		}
+	}
+	```
+### Go Modules
+Go modules 是 Go 语⾔的依赖解决⽅案，发布于 Go1.11，成⻓于Go1.12，丰富于 Go1.13，正式于 Go1.14 推荐在⽣产上使⽤。
+
